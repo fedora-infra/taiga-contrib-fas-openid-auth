@@ -79,7 +79,7 @@ FASOpenIDLoginButtonDirective = ($window, $params, $location, $config, $events, 
         template: ""
     }
 
-module.directive("tgFASOpenIDLoginButton", [
+module.directive("tgFasOpenidLoginButton", [
     "$window", '$routeParams', "$tgLocation", "$tgConfig", "$tgEvents",
    "$tgConfirm", "$tgAuth", "$tgNavUrls", "tgLoader",
    FASOpenIDLoginButtonDirective])
