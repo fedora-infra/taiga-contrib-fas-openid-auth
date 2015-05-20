@@ -1,6 +1,8 @@
 # Copyright (C) 2014 Andrey Antukh <niwi@niwi.be>
 # Copyright (C) 2014 Jesús Espino <jespinog@gmail.com>
 # Copyright (C) 2014 David Barragán <bameda@dbarragan.com>
+# Copyright (C) 2015 Ralph Bean <rbean@redhat.com>
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
@@ -26,48 +28,54 @@ from . import connector
 
 
 @tx.atomic
-def github_register(username:str, email:str, full_name:str, github_id:int, bio:str, token:str=None):
+def fas_register(username, full_name):
     """
-    Register a new user from github.
+    Register a new user from FAS.
 
     This can raise `exc.IntegrityError` exceptions in
     case of conflics found.
 
     :returns: User
     """
-    auth_data_model = apps.get_model("users", "AuthData")
-    user_model = apps.get_model("users", "User")
+    raise NotImplementedError("gotta write this still.")
 
-    try:
-        # Github user association exist?
-        auth_data = auth_data_model.objects.get(key="github", value=github_id)
-        user = auth_data.user
-    except auth_data_model.DoesNotExist:
-        try:
-            # Is a user with the same email as the github user?
-            user = user_model.objects.get(email=email)
-            auth_data_model.objects.create(user=user, key="github", value=github_id, extra={})
-        except user_model.DoesNotExist:
-            # Create a new user
-            username_unique = slugify_uniquely(username, user_model, slugfield="username")
-            user = user_model.objects.create(email=email,
-                                             username=username_unique,
-                                             full_name=full_name,
-                                             bio=bio)
-            auth_data_model.objects.create(user=user, key="github", value=github_id, extra={})
+    #auth_data_model = apps.get_model("users", "AuthData")
+    #user_model = apps.get_model("users", "User")
 
-            send_register_email(user)
-            user_registered_signal.send(sender=user.__class__, user=user)
+    #try:
+    #    # Github user association exist?
+    #    auth_data = auth_data_model.objects.get(key="github", value=github_id)
+    #    user = auth_data.user
+    #except auth_data_model.DoesNotExist:
+    #    try:
+    #        # Is a user with the same email as the github user?
+    #        user = user_model.objects.get(email=email)
+    #        auth_data_model.objects.create(user=user, key="github", value=github_id, extra={})
+    #    except user_model.DoesNotExist:
+    #        # Create a new user
+    #        username_unique = slugify_uniquely(username, user_model, slugfield="username")
+    #        user = user_model.objects.create(email=email,
+    #                                         username=username_unique,
+    #                                         full_name=full_name,
+    #                                         bio=bio)
+    #        auth_data_model.objects.create(user=user, key="github", value=github_id, extra={})
 
-    if token:
-        membership = get_membership_by_token(token)
-        membership.user = user
-        membership.save(update_fields=["user"])
+    #        send_register_email(user)
+    #        user_registered_signal.send(sender=user.__class__, user=user)
 
-    return user
+    #if token:
+    #    membership = get_membership_by_token(token)
+    #    membership.user = user
+    #    membership.save(update_fields=["user"])
+
+    #return user
 
 
-def github_login_func(request):
+def fas_openid_login_func(request):
+
+    # Use this endpoint for two phases of the login
+    print request.DATA
+
     code = request.DATA.get('code', None)
     token = request.DATA.get('token', None)
 
