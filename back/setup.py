@@ -5,24 +5,21 @@ import os
 from setuptools import setup, find_packages
 
 setup(
-    name = 'taiga-contrib-github-auth',
-    version = ":versiontools:taiga_contrib_github_auth:",
-    description = "The Taiga plugin for github authentication",
-    long_description = "",
-    keywords = 'taiga, github, auth, plugin',
-    author = 'Jesús Espino García',
-    author_email = 'jesus.espino@kaleidos.net',
-    url = 'https://github.com/taigaio/taiga-contrib-github-auth',
-    license = 'AGPL',
-    include_package_data = True,
-    packages = find_packages(),
+    name='taiga-contrib-fas-openid-auth'
+    version='0.1',
+    description="The Taiga plugin for FAS authentication",
+    long_description="",
+    keywords='taiga, fas, openid, fedora, auth, plugin',
+    author='Ralph Bean',
+    author_email='rbean@redhat.com',
+    url='https://github.com/fedora-infra/taiga-contrib-fas-openid-auth',
+    license='AGPL',
+    include_package_data=True,
+    packages=find_packages(),
     install_requires=[
         'django >= 1.7',
     ],
-    setup_requires = [
-        'versiontools >= 1.8',
-    ],
-    classifiers = [
+    classifiers=[
         "Programming Language :: Python",
         'Development Status :: 4 - Beta',
         'Framework :: Django',
