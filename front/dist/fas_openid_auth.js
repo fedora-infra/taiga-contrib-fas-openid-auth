@@ -80,7 +80,7 @@
     };
   };
 
-  module.directive("tgFASOpenIDLoginButton", ["$window", '$routeParams', "$tgLocation", "$tgConfig", "$tgEvents", "$tgConfirm", "$tgAuth", "$tgNavUrls", "tgLoader", FASOpenIDLoginButtonDirective]);
+  module.directive("tgFasOpenidLoginButton", ["$window", '$routeParams', "$tgLocation", "$tgConfig", "$tgEvents", "$tgConfirm", "$tgAuth", "$tgNavUrls", "tgLoader", FASOpenIDLoginButtonDirective]);
 
   module.run([
     '$templateCache', function($templateCache) {
