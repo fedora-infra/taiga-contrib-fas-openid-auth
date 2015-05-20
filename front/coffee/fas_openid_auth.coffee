@@ -1,30 +1,30 @@
 @.taigaContribPlugins = @.taigaContribPlugins or []
 
-githubAuthInfo = {
-    slug: "github-auth"
-    name: "Github Auth"
+fasOpenIDAuthInfo = {
+    slug: "fas-openid-auth"
+    name: "FAS Auth"
     type: "auth"
-    module: "taigaContrib.githubAuth"
-    template: "contrib/github_auth"
+    module: "taigaContrib.fasOpenIDAuth"
+    template: "contrib/fas_openid_auth"
 }
 
-@.taigaContribPlugins.push(githubAuthInfo)
+@.taigaContribPlugins.push(fasOpenIDAuthInfo)
 
-module = angular.module('taigaContrib.githubAuth', [])
+module = angular.module('taigaContrib.fasOpenIDAuth', [])
 
-AUTH_URL = "https://github.com/login/oauth/authorize"
+ID_PROVIDER = "https://id.fedoraproject.org"
 
-GithubLoginButtonDirective = ($window, $params, $location, $config, $events, $confirm, $auth, $navUrls, $loader) ->
-    # Login or registar a user with his/her github account.
+FASOpenIDLoginButtonDirective = ($window, $params, $location, $config, $events, $confirm, $auth, $navUrls, $loader) ->
+    # Login or registar a user with his/her fas account.
     #
     # Example:
-    #     tg-github-login-button()
+    #     tg-fas-openid-login-button()
     #
     # Requirements:
     #   - ...
 
     link = ($scope, $el, $attrs) ->
-        clientId = $config.get("gitHubClientId", null)
+        clientId = $config.get("fasOpenIDClientId", null)
 
         loginOnSuccess = (response) ->
             if $params.next and $params.next != $navUrls.resolve("login")
@@ -48,25 +48,26 @@ GithubLoginButtonDirective = ($window, $params, $location, $config, $events, $co
             if response.data.error_message
                 $confirm.notify("light-error", response.data.error_message )
             else
-                $confirm.notify("light-error", "Our Oompa Loompas have not been able to get you
-                                                credentials from GitHub.")  #TODO: i18n
+                $confirm.notify("light-error",
+                        "Our Panda Squad wasn't able to log you in via FAS.")
 
-        loginWithGitHubAccount = ->
+        loginWithFASOpenIDAccount = ->
             type = $params.state
             code = $params.code
             token = $params.token
 
-            return if not (type == "github" and code)
+            return if not (type == "fas-openid" and code)
             $loader.start()
 
             data = {code: code, token: token}
             $auth.login(data, type).then(loginOnSuccess, loginOnError)
 
-        loginWithGitHubAccount()
+        loginWithFASOpenIDAccount()
 
+        # TODO - get patrick's login-via-JS stuff and work it in here..
         $el.on "click", ".button-auth", (event) ->
             redirectToUri = $location.absUrl()
-            url = "#{AUTH_URL}?client_id=#{clientId}&redirect_uri=#{redirectToUri}&state=github&scope=user:email"
+            url = "#{AUTH_URL}?client_id=#{clientId}&redirect_uri=#{redirectToUri}&state=fas-openid&scope=user:email"
             $window.location.href = url
 
         $scope.$on "$destroy", ->
@@ -78,6 +79,7 @@ GithubLoginButtonDirective = ($window, $params, $location, $config, $events, $co
         template: ""
     }
 
-module.directive("tgGithubLoginButton", ["$window", '$routeParams', "$tgLocation", "$tgConfig", "$tgEvents",
-                                         "$tgConfirm", "$tgAuth", "$tgNavUrls", "tgLoader",
-                                         GithubLoginButtonDirective])
+module.directive("tgFASOpenIDLoginButton", [
+    "$window", '$routeParams', "$tgLocation", "$tgConfig", "$tgEvents",
+   "$tgConfirm", "$tgAuth", "$tgNavUrls", "tgLoader",
+   FASOpenIDLoginButtonDirective])
