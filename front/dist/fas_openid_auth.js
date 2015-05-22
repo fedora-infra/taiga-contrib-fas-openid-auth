@@ -64,10 +64,21 @@
       };
       loginWithFASOpenIDAccount();
       $el.on("click", ".button-auth", function(event) {
-        var redirectToUri, url;
-        redirectToUri = $location.absUrl();
-        url = AUTH_URL + "?client_id=" + clientId + "&redirect_uri=" + redirectToUri + "&state=fas-openid&scope=user:email";
-        return $window.location.href = url;
+        $.ajax({
+          url: '/api/v1/auth',
+          method: 'POST',
+          data: {type: 'fas-openid'},
+          success: function(data) {
+            // THIS IS CRAZY //
+            var form = $(data.form);
+            $('body').append(form);
+            form.submit();
+          },
+          error: function(data) {
+            console.log('failure');
+            console.log(data);
+          },
+        });
       });
       return $scope.$on("$destroy", function() {
         return $el.off();

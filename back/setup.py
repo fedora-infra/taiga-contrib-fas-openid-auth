@@ -18,6 +18,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'django >= 1.7',
+        'python3-openid',
     ],
     classifiers=[
         "Programming Language :: Python",
