@@ -28,6 +28,8 @@ from taiga.auth.signals import user_registered as user_registered_signal
 
 from . import connector
 
+# Are we interested in any groups for this?  How about this for now?
+groups = ['sysadmin-releng', 'sysadmin-main']
 
 @tx.atomic
 def fas_register(username, full_name):
@@ -103,9 +105,8 @@ import openid
 from openid.consumer import consumer
 from openid.fetchers import setDefaultFetcher, Urllib2Fetcher
 from openid.extensions import pape, sreg
-# Python2 only :(
-#from openid_cla import cla
-#from openid_teams import teams
+from openid_cla import cla
+from openid_teams import teams
 
 
 def handle_openid_request(request):
@@ -171,7 +172,10 @@ def handle_initial_request(request):
     req.addExtension(sreg.SRegRequest(
         required=['nickname', 'fullname', 'email', 'timezone']))
     req.addExtension(pape.Request([]))
-    # Ignore teams and CLA stuff for now for py2/py3 reasons
+    req.addExtension(teams.TeamsRequest(requested=groups))
+    req.addExtension(cla.CLARequest(
+        requested=[cla.CLA_URI_FEDORA_DONE]))
+
 
     # Use the django HTTPRequest for this
     trust_root = request.build_absolute_uri('/')
