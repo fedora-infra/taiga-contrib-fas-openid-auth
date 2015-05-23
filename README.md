@@ -3,6 +3,36 @@ Taiga contrib FAS OpenID auth
 
 The Taiga plugin for FAS (Fedora Account System) authentication.
 
+Flow diagram
+------------
+
+Roughly, this is how it works
+
+```
+taiga-front       taiga-back       fedoauth
+-------------------------------------------
+
+  add a
+   FAS
+  button
+    |
+    V
+  click ----ajax--> auth?
+                     |
+  hidden <--html-----*
+   form
+   auto
+  submit ---POST-------------------> auth?
+                                       |
+             verify and store <--POST--*
+              user in the db
+                    |
+  verify <--302-----*
+  and update
+  the UI to
+  say welcome!
+```
+
 Installation
 ------------
 
@@ -49,31 +79,3 @@ Include in your dist/js/conf.json in the contribPlugins list the value `"/js/fas
     "contribPlugins": ["/js/fas_openid_auth.js"]
 ...
 ```
-
-Flow diagram
-------------
-
-Roughly, this is how it works:
-
-  | taiga-front       taiga-back       fedoauth
-  | -------------------------------------------
-  |
-  |   add a
-  |    FAS
-  |   button
-  |     |
-  |     V
-  |   click ----ajax--> auth?
-  |                      |
-  |   hidden <--html-----*
-  |    form
-  |    auto
-  |   submit ---POST-------------------> auth?
-  |                                        |
-  |              verify and store <--POST--*
-  |               user in the db
-  |                     |
-  |   verify <--302-----*
-  |   and update
-  |   the UI to
-  |   say welcome!
