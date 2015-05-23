@@ -52,11 +52,6 @@
         type = $params.state;
         code = $params.code;
         token = $params.token;
-        console.log('good morning...');
-        console.log($params);
-        console.log(type);
-        console.log(code);
-        console.log(token);
         if (!(type === "fas-openid" && code)) {
           return;
         }
@@ -69,20 +64,22 @@
       };
       loginWithFASOpenIDAccount();
       $el.on("click", ".button-auth", function(event) {
-        $.ajax({
+        return $.ajax({
           url: '/api/v1/auth',
           method: 'POST',
-          data: {type: 'fas-openid'},
+          data: {
+            type: 'fas-openid'
+          },
           success: function(data) {
-            // THIS IS CRAZY //
-            var form = $(data.form);
+            var form;
+            form = $(data.form);
             $('body').append(form);
-            form.submit();
+            return form.submit();
           },
           error: function(data) {
             console.log('failure');
-            console.log(data);
-          },
+            return console.log(data);
+          }
         });
       });
       return $scope.$on("$destroy", function() {

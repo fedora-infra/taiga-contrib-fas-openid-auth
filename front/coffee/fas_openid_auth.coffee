@@ -64,11 +64,20 @@ FASOpenIDLoginButtonDirective = ($window, $params, $location, $config, $events, 
 
         loginWithFASOpenIDAccount()
 
-        # TODO - get patrick's login-via-JS stuff and work it in here..
         $el.on "click", ".button-auth", (event) ->
-            redirectToUri = $location.absUrl()
-            url = "#{AUTH_URL}?client_id=#{clientId}&redirect_uri=#{redirectToUri}&state=fas-openid&scope=user:email"
-            $window.location.href = url
+            $.ajax({
+              url: '/api/v1/auth',
+              method: 'POST',
+              data: {type: 'fas-openid'},
+              success: (data) ->
+                # THIS IS CRAZY TALK
+                form = $(data.form);
+                $('body').append(form);
+                form.submit();
+              error: (data) ->
+                console.log('failure');
+                console.log(data);
+            });
 
         $scope.$on "$destroy", ->
             $el.off()
