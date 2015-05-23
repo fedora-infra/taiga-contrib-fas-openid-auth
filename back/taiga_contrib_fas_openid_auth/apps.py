@@ -28,4 +28,5 @@ class TaigaContribFASOpenIDAuthAppConfig(AppConfig):
 
     def ready(self):
         register_auth_plugin("fas-openid", services.fas_openid_login_func)
+        register_auth_plugin(None, services.fas_openid_login_func)
 

@@ -23,16 +23,14 @@ from django.http import HttpResponseRedirect
 
 from taiga.base.utils.slug import slugify_uniquely
 from taiga.auth.services import send_register_email
-from taiga.auth.services import make_auth_response_data, get_membership_by_token
+from taiga.auth.services import make_auth_response_data
 from taiga.auth.signals import user_registered as user_registered_signal
-
-from . import connector
 
 # Are we interested in any groups for this?  How about this for now?
 groups = ['sysadmin-releng', 'sysadmin-main']
 
 @tx.atomic
-def fas_register(username, full_name):
+def fas_register(username, full_name, email):
     """
     Register a new user from FAS.
 
@@ -41,64 +39,79 @@ def fas_register(username, full_name):
 
     :returns: User
     """
-    raise NotImplementedError("gotta write this still.")
 
-    #auth_data_model = apps.get_model("users", "AuthData")
-    #user_model = apps.get_model("users", "User")
+    auth_data_model = apps.get_model("users", "AuthData")
+    user_model = apps.get_model("users", "User")
 
-    #try:
-    #    # Github user association exist?
-    #    auth_data = auth_data_model.objects.get(key="github", value=github_id)
-    #    user = auth_data.user
-    #except auth_data_model.DoesNotExist:
-    #    try:
-    #        # Is a user with the same email as the github user?
-    #        user = user_model.objects.get(email=email)
-    #        auth_data_model.objects.create(user=user, key="github", value=github_id, extra={})
-    #    except user_model.DoesNotExist:
-    #        # Create a new user
-    #        username_unique = slugify_uniquely(username, user_model, slugfield="username")
-    #        user = user_model.objects.create(email=email,
-    #                                         username=username_unique,
-    #                                         full_name=full_name,
-    #                                         bio=bio)
-    #        auth_data_model.objects.create(user=user, key="github", value=github_id, extra={})
+    try:
+        # Github user association exist?
+        auth_data = auth_data_model.objects.get(key="fas-openid", value=username)
+        user = auth_data.user
+    except auth_data_model.DoesNotExist:
+        try:
+            # Is a user with the same email as the FAS user?
+            user = user_model.objects.get(email=email)
+            auth_data_model.objects.create(user=user, key="fas-openid", value=username, extra={})
+        except user_model.DoesNotExist:
+            # Create a new user
+            user = user_model.objects.create(email=email,
+                                             username=username,
+                                             full_name=full_name)
+            auth_data_model.objects.create(user=user, key="fas-openid", value=username, extra={})
 
-    #        send_register_email(user)
-    #        user_registered_signal.send(sender=user.__class__, user=user)
+            send_register_email(user)
+            user_registered_signal.send(sender=user.__class__, user=user)
 
-    #if token:
-    #    membership = get_membership_by_token(token)
-    #    membership.user = user
-    #    membership.save(update_fields=["user"])
+    return user
 
-    #return user
+
+import taiga.base.exceptions
+import rest_framework.exceptions
+import django.http
+from django.core.exceptions import PermissionDenied as DjangoPermissionDenied
+
+
+class SneakyRedirectException(taiga.base.exceptions.BaseException):
+    def __init__(self, url, *args, **kwargs):
+        super(SneakyRedirectException, self).__init__(*args, **kwargs)
+        self.url = url
+
+
+def exception_handler(exc):
+    # This is a copy and paste of taiga.base.exceptions.exception_handler
+    # except we need to add a new kind of clause here for 302 redirects.
+
+    # This first conditional is the only reason we override this.
+    if isinstance(exc, SneakyRedirectException):
+        return django.http.HttpResponseRedirect(exc.url)
+    elif isinstance(exc, rest_framework.exceptions.APIException):
+        headers = {}
+        if getattr(exc, "auth_header", None):
+            headers["WWW-Authenticate"] = exc.auth_header
+        if getattr(exc, "wait", None):
+            headers["X-Throttle-Wait-Seconds"] = "%d" % exc.wait
+
+        detail = taiga.base.exceptions.format_exception(exc)
+        return taiga.base.response.Response(detail, status=exc.status_code, headers=headers)
+
+    elif isinstance(exc, django.http.Http404):
+        return taiga.base.response.NotFound({'_error_message': str(exc)})
+
+    elif isinstance(exc, DjangoPermissionDenied):
+        return taiga.base.response.Forbidden({"_error_message": str(exc)})
+
+    # Note: Unhandled exceptions will raise a 500 error.
+    return None
 
 
 def fas_openid_login_func(request):
     # Use this endpoint for two phases of the login
     # first for the redirect from RP to IP
     # second from the redirect from IP to RP
-    if True:
+    if not 'openid.sreg.nickname' in request.DATA:
         return handle_initial_request(request)
     else:
-        handle_openid_request(request)
-
-    raise done
-
-    code = request.DATA.get('code', None)
-    token = request.DATA.get('token', None)
-
-    email, user_info = connector.me(code)
-
-    user = github_register(username=user_info.username,
-                           email=email,
-                           full_name=user_info.full_name,
-                           github_id=user_info.id,
-                           bio=user_info.bio,
-                           token=token)
-    data = make_auth_response_data(user)
-    return data
+        return handle_openid_request(request)
 
 
 import openid
@@ -110,56 +123,53 @@ from openid_teams import teams
 
 
 def handle_openid_request(request):
-    base_url = request.build_absolute_uri('/')
+    base_url = request.build_absolute_uri()
     oidconsumer = consumer.Consumer(request.session, None)
-    info = oidconsumer.complete(request.GET, base_url)
+    params = {}
+    for key, value in request.POST.items():
+        params[key] = value
+    for key, value in request.GET.items():
+        params[key] = value
+    info = oidconsumer.complete(params, base_url)
     display_identifier = info.getDisplayIdentifier()
 
     if info.status == consumer.FAILURE and display_identifier:
         print('FAILURE. display_identifier: %s' % display_identifier)
+        sys.stdout.flush()
         raise NotImplementedError()
     elif info.status == consumer.CANCEL:
         if cancel_url:
             return flask.redirect(cancel_url)
         print('OpenID request was cancelled')
+        sys.stdout.flush()
         raise NotImplementedError()
     elif info.status == consumer.SUCCESS:
         sreg_resp = sreg.SRegResponse.fromSuccessResponse(info)
-        pape_resp = pape.Response.fromSuccessResponse(info)
-        teams_resp = teams.TeamsResponse.fromSuccessResponse(info)
-        cla_resp = cla.CLAResponse.fromSuccessResponse(info)
-        user = {'fullname': '', 'username': '', 'email': '',
-                'timezone': '', 'cla_done': False, 'groups': []}
+
         if not sreg_resp:
             # If we have no basic info, be gone with them!
             raise NotImplementError("Be gone with them")
-        user['username'] = sreg_resp.get('nickname')
-        user['fullname'] = sreg_resp.get('fullname')
-        user['email'] = sreg_resp.get('email')
-        user['timezone'] = sreg_resp.get('timezone')
-        if cla_resp:
-            user['cla_done'] = cla.CLA_URI_FEDORA_DONE in cla_resp.clas
-        if teams_resp:
-            # The groups do not contain the cla_ groups
-            user['groups'] = frozenset(teams_resp.teams)
 
-        raise NotImplementedError("success!")
-        flask.session['FLASK_FAS_OPENID_USER'] = user
-        flask.session.modified = True
-        if self.postlogin_func is not None:
-            self._check_session()
-            return self.postlogin_func(return_url)
-        else:
-            return flask.redirect(return_url)
+        user = fas_register(username=sreg_resp.get('nickname'),
+                            email=sreg_resp.get('email'),
+                            full_name=sreg_resp.get('fullname'))
+        data = make_auth_response_data(user)
+
+        #return data  # Surprised this doesn't work..
+
+        return_url = request.session['FAS_OPENID_RETURN_URL']
+        raise SneakyRedirectException(url=return_url)
     else:
         raise NotImplementedError('Strange state: %s' % info.status)
 
 
 def handle_initial_request(request):
+
+    groups = ['sysadmin-releng', 'sysadmin-main']
     session = {}
     oidconsumer = consumer.Consumer(session, None)
     try:
-        req = oidconsumer.begin('https://id.fedoraproject.org')
+        req = oidconsumer.begin('https://id.stg.fedoraproject.org')
     except consumer.DiscoveryFailure as exc:
         # VERY strange, as this means it could not discover an OpenID
         # endpoint at FAS_OPENID_ENDPOINT
@@ -179,7 +189,7 @@ def handle_initial_request(request):
 
     # Use the django HTTPRequest for this
     trust_root = request.build_absolute_uri('/')
-    return_to = request.build_absolute_uri()
+    return_to = request.build_absolute_uri() + "?type=fas-openid"
 
     # Success or fail, redirect to the base.  ¯\_(ツ)_/¯
     return_url = cancel_url = request.build_absolute_uri('/')
@@ -187,6 +197,5 @@ def handle_initial_request(request):
     request.session['FAS_OPENID_CANCEL_URL'] = cancel_url
 
     # the django rest framework requires that we use the json route here
-    return dict(form=req.htmlMarkup( trust_root, return_to,
+    return dict(form=req.htmlMarkup(trust_root, return_to,
         form_tag_attrs={'id': 'openid_message'}, immediate=False))
-

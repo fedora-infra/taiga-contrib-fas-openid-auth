@@ -52,6 +52,11 @@
         type = $params.state;
         code = $params.code;
         token = $params.token;
+        console.log('good morning...');
+        console.log($params);
+        console.log(type);
+        console.log(code);
+        console.log(token);
         if (!(type === "fas-openid" && code)) {
           return;
         }

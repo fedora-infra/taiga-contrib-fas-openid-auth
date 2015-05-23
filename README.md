@@ -25,6 +25,13 @@ Modify your settings/local.py and include the line:
   # Get these from https://github.com/settings/developers
   GITHUB_API_CLIENT_ID = "YOUR-GITHUB-CLIENT-ID"
   GITHUB_API_CLIENT_SECRET = "YOUR-GITHUB-CLIENT-SECRET"
+
+
+  REST_FRAMEWORK = {
+      # We monkey patch the rest_framework exception handler to allow us to do
+      # the 303 redirects that we need to do for openid to finish.
+      "EXCEPTION_HANDLER": "taiga_contrib_fas_openid_auth.services.exception_handler",
+  }
 ```
 
 ### Taiga Front
