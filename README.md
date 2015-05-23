@@ -60,14 +60,14 @@ Download in your `dist/js/` directory of Taiga front the `taiga-contrib-fas-open
 
 ```bash
   cd dist/js
-  wget "https://raw.githubusercontent.com/taigaio/taiga-contrib-fas-openid-auth/$(pip show taiga-contrib-fas-openid-auth | awk '/^Version: /{print $2}')/front/dist/fas_openid_auth.js"
+  wget "https://raw.githubusercontent.com/fedora-infra/taiga-contrib-fas-openid-auth/$(pip show taiga-contrib-fas-openid-auth | awk '/^version: /{print $2}')/front/dist/fas_openid_auth.js"
 ```
 
 Download in your `dist/images/contrib` directory of Taiga front the `taiga-contrib-fas-openid-auth` Fedora icon:
 
 ```bash
   cd dist/images/contrib
-  wget "https://raw.githubusercontent.com/taigaio/taiga-contrib-fas-openid-auth/$(pip show taiga-contrib-fas-openid-auth | awk '/^Version: /{print $2}')/front/images/contrib/fedora-logo.png"
+  wget "https://raw.githubusercontent.com/fedora-infra/taiga-contrib-fas-openid-auth/$(pip show taiga-contrib-fas-openid-auth | awk '/^Version: /{print $2}')/front/images/contrib/fedora-logo.png"
 ```
 
 Include in your dist/js/conf.json in the contribPlugins list the value `"/js/fas_openid_auth.js"`:
