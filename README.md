@@ -9,28 +9,26 @@ Flow diagram
 Roughly, this is how it works
 
 ```
-taiga-front       taiga-back       fedoauth
--------------------------------------------
+taiga-front             taiga-back         fedoauth
+---------------------------------------------------
 
-  add a
-   FAS
+ add a FAS
   button
     |
     V
-  click ----ajax--> auth?
-                     |
-  hidden <--html-----*
-   form
-   auto
-  submit ---POST-------------------> auth?
-                                       |
-             verify and store <--POST--*
-              user in the db
-                    |
-  verify <--302-----*
-  and update
-  the UI to
-  say welcome!
+  click  -----ajax------> auth?
+                           |
+  hidden <----html---------*
+form, auto
+  submit -----POST-------------------------> auth?
+                                               |
+                   verify and store <---POST---*
+                    user in the db
+                           |
+  verify <----302----------*
+and update
+the UI to
+say welcome!
 ```
 
 Installation
