@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import urllib.parse
+
 from django.db import transaction as tx
 from django.apps import apps
 
@@ -153,11 +155,23 @@ def handle_openid_request(request):
         user = fas_register(username=sreg_resp.get('nickname'),
                             email=sreg_resp.get('email'),
                             full_name=sreg_resp.get('fullname'))
+
         data = make_auth_response_data(user)
+        data['token'] = data['auth_token']  # ¯\_(ツ)_/¯
+        data['type'] = 'fas-openid'
 
         #return data  # Surprised this doesn't work..
+        print("-" * 30)
+        import pprint
+        pprint.pprint(data)
 
-        return_url = request.session['FAS_OPENID_RETURN_URL']
+        #return_url = request.session['FAS_OPENID_RETURN_URL'] + "?" + urllib.parse.urlencode(data)
+        return_url = request.build_absolute_uri('/login') + "?" + urllib.parse.urlencode(data)
+
+        print(return_url)
+        print("-" * 30)
+        import sys; sys.stdout.flush()
+
         raise SneakyRedirectException(url=return_url)
     else:
         raise NotImplementedError('Strange state: %s' % info.status)
