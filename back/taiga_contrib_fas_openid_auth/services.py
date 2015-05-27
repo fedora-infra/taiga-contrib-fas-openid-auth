@@ -16,14 +16,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import urllib.parse
 
 from django.db import transaction as tx
 from django.apps import apps
 
-from django.http import HttpResponseRedirect
-
-from taiga.base.utils.slug import slugify_uniquely
 from taiga.auth.services import send_register_email
 from taiga.auth.services import make_auth_response_data
 from taiga.auth.signals import user_registered as user_registered_signal
@@ -116,9 +114,7 @@ def fas_openid_login_func(request):
         return handle_openid_request(request)
 
 
-import openid
 from openid.consumer import consumer
-from openid.fetchers import setDefaultFetcher, Urllib2Fetcher
 from openid.extensions import pape, sreg
 from openid_cla import cla
 from openid_teams import teams
@@ -138,19 +134,18 @@ def handle_openid_request(request):
     if info.status == consumer.FAILURE and display_identifier:
         print('FAILURE. display_identifier: %s' % display_identifier)
         sys.stdout.flush()
-        raise NotImplementedError()
     elif info.status == consumer.CANCEL:
-        if cancel_url:
-            return flask.redirect(cancel_url)
         print('OpenID request was cancelled')
         sys.stdout.flush()
         raise NotImplementedError()
+        #if cancel_url:
+        #    return flask.redirect(cancel_url)
     elif info.status == consumer.SUCCESS:
         sreg_resp = sreg.SRegResponse.fromSuccessResponse(info)
 
         if not sreg_resp:
             # If we have no basic info, be gone with them!
-            raise NotImplementError("Be gone with them")
+            raise NotImplementedError("Be gone with them")
 
         user = fas_register(username=sreg_resp.get('nickname'),
                             email=sreg_resp.get('email'),
@@ -160,17 +155,8 @@ def handle_openid_request(request):
         data['token'] = data['auth_token']  # ¯\_(ツ)_/¯
         data['type'] = 'fas-openid'
 
-        #return data  # Surprised this doesn't work..
-        print("-" * 30)
-        import pprint
-        pprint.pprint(data)
-
         #return_url = request.session['FAS_OPENID_RETURN_URL'] + "?" + urllib.parse.urlencode(data)
         return_url = request.build_absolute_uri('/login') + "?" + urllib.parse.urlencode(data)
-
-        print(return_url)
-        print("-" * 30)
-        import sys; sys.stdout.flush()
 
         raise SneakyRedirectException(url=return_url)
     else:
@@ -184,7 +170,7 @@ def handle_initial_request(request):
     oidconsumer = consumer.Consumer(session, None)
     try:
         req = oidconsumer.begin('https://id.stg.fedoraproject.org')
-    except consumer.DiscoveryFailure as exc:
+    except consumer.DiscoveryFailure:
         # VERY strange, as this means it could not discover an OpenID
         # endpoint at FAS_OPENID_ENDPOINT
         return 'discoveryfailure'
