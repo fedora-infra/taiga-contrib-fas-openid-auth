@@ -21,50 +21,33 @@
     link = function($scope, $el, $attrs) {
       var loginWithFASOpenIDAccount;
       loginWithFASOpenIDAccount = function() {
-        var data, token, type;
+        var data, nextUrl, scrub, token, type, user;
         type = $params.type;
         token = $params.token;
-        console.log($params);
-        if (!(type == "fas-openid")) {
-console.log('bailing early');
-console.log(type);
+        if (!(type === "fas-openid")) {
           return;
         }
-        if (token === undefined) {
-            console.log('token is undefined.  bailing out');
-            return;
+        if (typeof token === 'undefined') {
+          return;
         }
         $loader.start();
-console.log('about to try to login ourselves...');
-
-        // Let's do this ourselves
         $auth.removeToken();
-console.log("about to make model with params");
-var data = _.clone($params, false);
-console.log(data);
-        var user = $auth.model.make_model("users", data);
-console.log("got user");
-console.log(user);
+        data = _.clone($params, false);
+        user = $auth.model.make_model("users", data);
         $auth.setToken(user.auth_token);
         $auth.setUser(user);
-        var nextUrl;
+        $events.setupConnection();
         if ($params.next && $params.next !== $navUrls.resolve("login")) {
           nextUrl = $params.next;
         } else {
           nextUrl = $navUrls.resolve("home");
         }
-console.log('nextUrl is ' + nextUrl);
-console.log('setting up events connection');
-        $events.setupConnection();
-console.log('scrubbing location bits');
-        $.each(['next', 'token', 'state', 'id', 'username', 'default_timezone', 'bio', 'type', 'default_language', 'is_active', 'photo', 'auth_token', 'big_photo', 'email', 'color', 'full_name_display', 'full_name'], function(i, name) {
-console.log('scrubbing ' + name);
-            $location.search(name, null);
-        });
-console.log('done scrubbing...?');
+        scrub = function(i, name) {
+          return $location.search(name, null);
+        };
+        $.each(['next', 'token', 'state', 'id', 'username', 'default_timezone', 'bio', 'type', 'default_language', 'is_active', 'photo', 'auth_token', 'big_photo', 'email', 'color', 'full_name_display', 'full_name'], scrub);
         return $location.path(nextUrl);
       };
-      console.log('about to try login with fas openid');
       loginWithFASOpenIDAccount();
       $el.on("click", ".button-auth", function(event) {
         return $.ajax({
@@ -89,12 +72,8 @@ console.log('done scrubbing...?');
         return $el.off();
       });
     };
-
-    // Hide the original login form :D
-    // This is definitely not tha angular way of doing things, but ¯\_(ツ)_/¯
     $('.login-form fieldset:nth-child(-n+3)').hide();
     $('.login-text').hide();
-
     return {
       link: link,
       restrict: "EA",
@@ -109,6 +88,5 @@ console.log('done scrubbing...?');
       return $templateCache.put('contrib/fas_openid_auth', '<div tg-fas-openid-login-button="tg-fas-openid-login-button"><a href="" title="Enter with your FAS account" class="button button-auth"><img src="/images/contrib/fedora-logo.png"/><span>Login with FAS</span></a></div>');
     }
   ]);
-
 
 }).call(this);

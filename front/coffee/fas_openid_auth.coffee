@@ -12,8 +12,6 @@ fasOpenIDAuthInfo = {
 
 module = angular.module('taigaContrib.fasOpenIDAuth', [])
 
-ID_PROVIDER = "https://id.fedoraproject.org"
-
 FASOpenIDLoginButtonDirective = ($window, $params, $location, $config, $events, $confirm, $auth, $navUrls, $loader) ->
     # Login or registar a user with his/her fas account.
     #
@@ -24,43 +22,36 @@ FASOpenIDLoginButtonDirective = ($window, $params, $location, $config, $events, 
     #   - ...
 
     link = ($scope, $el, $attrs) ->
-        clientId = $config.get("fasOpenIDClientId", null)
 
-        loginOnSuccess = (response) ->
+        loginWithFASOpenIDAccount = ->
+            type = $params.type
+            token = $params.token
+
+            return if not (type == "fas-openid")
+            return if typeof token is 'undefined'
+
+            $loader.start()
+
+            # Let's do this ourselves
+            $auth.removeToken();
+            data = _.clone($params, false);
+            user = $auth.model.make_model("users", data);
+            $auth.setToken(user.auth_token);
+            $auth.setUser(user);
+
+            $events.setupConnection()
+
             if $params.next and $params.next != $navUrls.resolve("login")
                 nextUrl = $params.next
             else
                 nextUrl = $navUrls.resolve("home")
 
-            $events.setupConnection()
+            scrub = (i, name) ->
+                $location.search(name, null)
 
-            $location.search("next", null)
-            $location.search("token", null)
-            $location.search("state", null)
-            $location.search("code", null)
+            $.each(['next', 'token', 'state', 'id', 'username', 'default_timezone', 'bio', 'type', 'default_language', 'is_active', 'photo', 'auth_token', 'big_photo', 'email', 'color', 'full_name_display', 'full_name'], scrub);
+
             $location.path(nextUrl)
-
-        loginOnError = (response) ->
-            $location.search("state", null)
-            $location.search("code", null)
-            $loader.pageLoaded()
-
-            if response.data.error_message
-                $confirm.notify("light-error", response.data.error_message )
-            else
-                $confirm.notify("light-error",
-                        "Our Panda Squad wasn't able to log you in via FAS.")
-
-        loginWithFASOpenIDAccount = ->
-            type = $params.state
-            code = $params.code
-            token = $params.token
-
-            return if not (type == "fas-openid" and code)
-            $loader.start()
-
-            data = {code: code, token: token}
-            $auth.login(data, type).then(loginOnSuccess, loginOnError)
 
         loginWithFASOpenIDAccount()
 
@@ -81,6 +72,11 @@ FASOpenIDLoginButtonDirective = ($window, $params, $location, $config, $events, 
 
         $scope.$on "$destroy", ->
             $el.off()
+
+    # Hide the original login form :D
+    # This is definitely not tha angular way of doing things, but ¯\_(ツ)_/¯
+    $('.login-form fieldset:nth-child(-n+3)').hide();
+    $('.login-text').hide();
 
     return {
         link: link
