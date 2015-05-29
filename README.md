@@ -47,11 +47,9 @@ Modify your settings/local.py and include the line:
 ```python
   INSTALLED_APPS += ["taiga_contrib_fas_openid_auth"]
 
-  REST_FRAMEWORK = {
-      # We monkey patch the rest_framework exception handler to allow us to do
-      # the 302 redirects that we need to do for openid to finish.
-      "EXCEPTION_HANDLER": "taiga_contrib_fas_openid_auth.services.exception_handler",
-  }
+  # We monkey patch the rest_framework exception handler to allow us to do
+  # the 302 redirects that we need to do for openid to finish.
+  REST_FRAMEWORK[“EXCEPTION_HANDLER”] = "taiga_contrib_fas_openid_auth.services.exception_handler"
 ```
 
 ### Taiga Front
