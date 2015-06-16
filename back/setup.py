@@ -5,7 +5,7 @@ import os
 from setuptools import setup, find_packages
 
 setup(
-    name='taiga-contrib-fas-openid-auth'
+    name='taiga-contrib-fas-openid-auth',
     version='0.1',
     description="The Taiga plugin for FAS authentication",
     long_description="",
