@@ -17,7 +17,7 @@ setup(
     include_package_data=True,
     packages=find_packages(),
     install_requires=[
-        'djangorestframework',
+        'django',
         'python3-openid',
         'python-openid-cla',
         'python-openid-teams',
