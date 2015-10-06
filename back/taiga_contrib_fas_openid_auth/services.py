@@ -175,7 +175,7 @@ def handle_initial_request(request):
     session = {}
     oidconsumer = consumer.Consumer(session, None)
     try:
-        req = oidconsumer.begin('https://id.fedoraproject.org')
+        req = oidconsumer.begin('https://id.stg.fedoraproject.org')
     except consumer.DiscoveryFailure:
         # VERY strange, as this means it could not discover an OpenID
         # endpoint at FAS_OPENID_ENDPOINT
