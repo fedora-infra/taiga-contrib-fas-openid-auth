@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='taiga-contrib-fas-openid-auth',
-    version='0.1',
+    version='0.2',
     description="The Taiga plugin for FAS authentication",
     long_description="",
     keywords='taiga, fas, openid, fedora, auth, plugin',
