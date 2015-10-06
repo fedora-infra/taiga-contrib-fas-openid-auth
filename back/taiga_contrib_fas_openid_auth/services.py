@@ -69,6 +69,13 @@ import taiga.base.exceptions
 import django.http
 from django.core.exceptions import PermissionDenied as DjangoPermissionDenied
 
+try:
+    # New taiga (1.8.0)
+    from taiga.base.exceptions import APIException
+except ImportError:
+    # Old taiga (1.6.0)
+    from rest_framework.exceptions import APIException
+
 
 class SneakyRedirectException(taiga.base.exceptions.BaseException):
     def __init__(self, url, *args, **kwargs):
@@ -83,7 +90,7 @@ def exception_handler(exc):
     # This first conditional is the only reason we override this.
     if isinstance(exc, SneakyRedirectException):
         return django.http.HttpResponseRedirect(exc.url)
-    elif isinstance(exc, taiga.base.exceptions.APIException):
+    elif isinstance(exc, APIException):
         headers = {}
         if getattr(exc, "auth_header", None):
             headers["WWW-Authenticate"] = exc.auth_header
