@@ -66,7 +66,6 @@ def fas_register(username, full_name, email):
 
 
 import taiga.base.exceptions
-import rest_framework.exceptions
 import django.http
 from django.core.exceptions import PermissionDenied as DjangoPermissionDenied
 
@@ -84,7 +83,7 @@ def exception_handler(exc):
     # This first conditional is the only reason we override this.
     if isinstance(exc, SneakyRedirectException):
         return django.http.HttpResponseRedirect(exc.url)
-    elif isinstance(exc, rest_framework.exceptions.APIException):
+    elif isinstance(exc, taiga.base.exceptions.APIException):
         headers = {}
         if getattr(exc, "auth_header", None):
             headers["WWW-Authenticate"] = exc.auth_header
