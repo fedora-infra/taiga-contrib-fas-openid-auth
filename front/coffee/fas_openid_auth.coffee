@@ -1,14 +1,3 @@
-@.taigaContribPlugins = @.taigaContribPlugins or []
-
-fasOpenIDAuthInfo = {
-    slug: "fas-openid-auth"
-    name: "FAS Auth"
-    type: "auth"
-    module: "taigaContrib.fasOpenIDAuth"
-    template: "contrib/fas_openid_auth"
-}
-
-@.taigaContribPlugins.push(fasOpenIDAuthInfo)
 
 module = angular.module('taigaContrib.fasOpenIDAuth', [])
 
