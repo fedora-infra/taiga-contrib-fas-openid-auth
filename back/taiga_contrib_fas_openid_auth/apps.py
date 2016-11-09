@@ -18,15 +18,13 @@
 
 from django.apps import AppConfig
 
-from taiga.auth.services import register_auth_plugin
-from . import services
-
-
 class TaigaContribFASOpenIDAuthAppConfig(AppConfig):
     name = "taiga_contrib_fas_openid_auth"
     verbose_name = "Taiga contrib FAS OpenID auth App Config"
 
     def ready(self):
+        from taiga.auth.services import register_auth_plugin
+        from . import services
         register_auth_plugin("fas-openid", services.fas_openid_login_func)
         register_auth_plugin(None, services.fas_openid_login_func)
 
