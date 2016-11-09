@@ -54,24 +54,32 @@ Modify your settings/local.py and include the line:
 
 ### Taiga Front
 
-Download in your `dist/js/` directory of Taiga front the `taiga-contrib-fas-openid-auth` compiled code:
+Create the directory structure for the new plugin
 
 ```bash
-  cd dist/js
-  wget "https://raw.githubusercontent.com/fedora-infra/taiga-contrib-fas-openid-auth/$(pip show taiga-contrib-fas-openid-auth | awk '/^version: /{print $2}')/front/dist/fas_openid_auth.js"
+  mkdir -p dist/plugins/fas-openid-auth
+  mkdir -p dist/plugins/fas-openid-auth/images/contrib
 ```
 
-Download in your `dist/images/contrib` directory of Taiga front the `taiga-contrib-fas-openid-auth` Fedora icon:
+Download in your `dist/plugins/` directory of Taiga front the `taiga-contrib-fas-openid-auth` compiled code:
 
 ```bash
-  cd dist/images/contrib
+  cd dist/plugins/fas-openid-auth
+  wget "https://raw.githubusercontent.com/fedora-infra/taiga-contrib-fas-openid-auth/$(pip show taiga-contrib-fas-openid-auth | awk '/^version: /{print $2}')/front/dist/fas_openid_auth.js"
+  wget "https://raw.githubusercontent.com/fedora-infra/taiga-contrib-fas-openid-auth/$(pip show taiga-contrib-fas-openid-auth | awk '/^version: /{print $2}')/front/dist/fas-openid-auth.json"
+```
+
+Download in your `dist/plugins/fas-openid-auth/images/contrib` directory of Taiga front the `taiga-contrib-fas-openid-auth` Fedora icon:
+
+```bash
+  cd dist/plugins/fas-openid-auth/images/contrib
   wget "https://raw.githubusercontent.com/fedora-infra/taiga-contrib-fas-openid-auth/$(pip show taiga-contrib-fas-openid-auth | awk '/^Version: /{print $2}')/front/images/contrib/fedora-logo.png"
 ```
 
-Include in your dist/js/conf.json in the contribPlugins list the value `"/js/fas_openid_auth.js"`:
+Include in your dist/conf.json in the contribPlugins list the value `"/plugins/fas-openid-auth/fas-openid-auth.json"`:
 
 ```json
 ...
-    "contribPlugins": ["/js/fas_openid_auth.js"]
+    "contribPlugins": ["/plugins/fas-openid-auth/fas-openid-auth.json"]
 ...
 ```
